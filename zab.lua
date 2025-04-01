@@ -1799,7 +1799,7 @@ local function dissect(buf, pkt, tree, state)
             -- record the opCode
             opCode = opCodeBuf:int()
             state.xids[xid] = opCode
-            tree:append_text(string.format(" [%s]", opCodes[opCode]))
+            tree:append_text(string.format(" [%s]", opCodes[opCode] or "UNKNOWN"))
         elseif state.dir == Direction.Server2Client then
             -- Reply, read return status
             opCode = state.xids[xid]
@@ -1807,7 +1807,7 @@ local function dissect(buf, pkt, tree, state)
             if opCode ~= nil then
                 -- state.xids[xid] = nil
                 tree:add(f_opCode, xidBuf, opCode) -- XXX.set_generated()
-                tree:append_text(string.format(" [%s REP]", opCodes[opCode]))
+                tree:append_text(string.format(" [%s REP]", opCodes[opCode] or "UNKNOWN"))
             end
             local result_offset, result = parseResult(buf(offset))
             if result_offset == -1 then return false end
@@ -1880,8 +1880,8 @@ function ZabProto.dissector(buf, pkt, root)
     local tree = root:add(ZabProto, buf())
 
     -- Memorize the sender/recipient to categorize below
-    local sender = string.format("%s:%s", pkt.src, pkt.src_port)
-    local recipient = string.format("%s:%s", pkt.dst, pkt.dst_port)
+    local sender = string.format("%s:%s", tostring(pkt.src), tostring(pkt.src_port))
+    local recipient = string.format("%s:%s", tostring(pkt.dst), tostring(pkt.dst_port))
 
     local state = {sender=sender, recipient=recipient, dir=nil, xids=nil}
     if CLIENTS[sender] ~= nil then
